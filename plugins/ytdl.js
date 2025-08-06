@@ -22,29 +22,20 @@ cmd({
     filename: __filename
 }, async (conn, m, mek, { from, q, reply }) => {
     try {
-        if (!q) return await reply("❌ Please provide a search term or YouTube URL.");
+        if (!q) return await reply("❌ Please provide a Query or Youtube URL!");
 
-        if (activeReplies.has(from)) return await reply("⏳ Please wait for the previous song request to complete.");
-        activeReplies.set(from, true);
-
-        let id = q.startsWith("https://") ? extractYouTubeID(q) : null;
+        let id = q.startsWith("https://") ? replaceYouTubeID(q) : null;
 
         if (!id) {
             const searchResults = await dy_scrap.ytsearch(q);
-            if (!searchResults?.results?.length) {
-                activeReplies.delete(from);
-                return await reply("❌ No results found.");
-            }
+            if (!searchResults?.results?.length) return await reply("❌ No results found!");
             id = searchResults.results[0].videoId;
         }
 
-        const data = await dy_scrap.ytdetail(`https://youtube.com/watch?v=${id}`);
-        if (!data?.result) {
-            activeReplies.delete(from);
-            return await reply("❌ Failed to fetch video details.");
-        }
+        const data = await dy_scrap.ytsearch(`https://youtube.com/watch?v=${id}`);
+        if (!data?.results?.length) return await reply("❌ Failed to fetch video!");
 
-        const { url, title, image, timestamp, ago, views, author } = data.result;
+        const { url, title, image, timestamp, ago, views, author } = data.results[0];
 
         const info = `*🎵 INDUWARA-MD SONG DOWNLOADER*\n\n` +
             `╭━━━━━━━━━━━━━━━┈⊷\n` +
