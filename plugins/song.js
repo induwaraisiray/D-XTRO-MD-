@@ -10,7 +10,7 @@ function extractYouTubeID(url) {
 }
 
 cmd({
-    pattern: "song",
+    pattern: "song1",
     alias: ["mp3", "ytmp3"],
     react: "🎵",
     desc: "Download Ytmp3",
