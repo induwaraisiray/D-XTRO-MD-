@@ -1,15 +1,14 @@
 const config = require('../config');
 const { cmd } = require('../command');
 const { ytsearch } = require('@dark-yasiya/yt-dl.js');
-const fetch = require('node-fetch'); 
 
 cmd({
-    pattern: "song2",
+    pattern: "song",
     alias: ["yta", "play"],
     react: "🎶",
     desc: "Download Youtube song",
     category: "main",
-    use: '.song2 < Yt url or Name >',
+    use: '.song < Yt url or Name >',
     filename: __filename
 }, async (conn, m, mek, { from, q, reply }) => {
     try {
