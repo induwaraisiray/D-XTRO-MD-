@@ -272,7 +272,7 @@ const port = process.env.PORT || 9090;
 // custum react settings        
                         
 if (!isReact && senderNumber !== botNumber) {
-    if (config.CUSTOM_REACT === 'true') {
+    if (config.CUSTOM_REACT === 'false') {
         // Use custom emojis from the configuration
         const reactions = (config.CUSTOM_REACT_EMOJIS || '🥲,😂,👍🏻,🙂,😔').split(',');
         const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
@@ -281,7 +281,7 @@ if (!isReact && senderNumber !== botNumber) {
 }
 
 if (!isReact && senderNumber === botNumber) {
-    if (config.CUSTOM_REACT === 'true') {
+    if (config.CUSTOM_REACT === 'false') {
         // Use custom emojis from the configuration
         const reactions = (config.CUSTOM_REACT_EMOJIS || '🥲,😂,👍🏻,🙂,😔').split(',');
         const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
