@@ -1,30 +1,33 @@
 const config = require('../config');
 const { cmd } = require('../command');
-const { ytsearch, ytmp3, ytmp4, song, video } = require('@dark-yasiya/yt-dl.js');
-const fetch = require('node-fetch');
+const { ytsearch, ytmp3, ytmp4 } = require('@dark-yasiya/yt-dl.js'); 
 
-// 🎵 Fast Song Downloader (No external API)
 cmd({
     pattern: "song",
     alias: ["yta", "play"],
-    react: "🎧",
-    desc: "Download Youtube song fast",
+    react: "🎶",
+    desc: "Download Youtube song",
     category: "main",
     use: '.song < Yt url or Name >',
     filename: __filename
 }, async (conn, m, mek, { from, q, reply }) => {
     try {
-        if (!q) return reply("❌ Please provide a YouTube URL or song name!");
-
         const yt = await ytsearch(q);
         if (!yt.results || yt.results.length < 1) return reply("No results found!");
 
         let yts = yt.results[0];
-        let mp3 = await ytmp3(yts.url); // Direct download link
+        let apiUrl = `https://apis.davidcyriltech.my.id/youtube/mp3?url=${encodeURIComponent(yts.url)}`;
+
+        let response = await fetch(apiUrl);
+        let data = await response.json();
+
+        if (data.status !== 200 || !data.success || !data.result.downloadUrl) {
+            return reply("Failed to fetch the audio. Please try again later.");
+        }
 
         const { url, title, image, timestamp, ago, views, author } = yts;
 
-        let ytmsg = `*🎵 INDUWARA MD SONG DOWNLOADER*\n\n` +
+        let ytmsg = `*🎵 INDUWARA-MD SONG DOWNLOADER*\n\n` +
             `╭━━━━━━━━━━━━━━━┈⊷\n` +
             `│ 🎵 *Title:* ${title || "Unknown"}\n` +
             `│ ⏳ *Duration:* ${timestamp || "Unknown"}\n` +
@@ -35,52 +38,57 @@ cmd({
             `│\n` +
             `│ 🔽 *Auto downloading....*\n` +
             `╰──────────────┈⊷\n` +
-            `> *© POWERED BY INDUWARA 〽️MD*`;
+            `> *© 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝙸𝙽𝙳𝚄𝚆𝙰𝚁𝙰 〽️𝙳*`;
 
-        // Send song details
+        // Send song details as image + caption
         await conn.sendMessage(from, { image: { url: image || '' }, caption: ytmsg }, { quoted: mek });
 
-        // Send audio fast (buffer method)
-        let res = await fetch(mp3.dl_link);
-        let buffer = await res.buffer();
-        await conn.sendMessage(from, { audio: buffer, mimetype: "audio/mpeg" }, { quoted: mek });
+        // Send audio file
+        await conn.sendMessage(from, { audio: { url: data.result.downloadUrl }, mimetype: "audio/mpeg" }, { quoted: mek });
 
-        // Optional: Send as document
+        // Send document version
         await conn.sendMessage(from, {
-            document: buffer,
+            document: { url: data.result.downloadUrl },
             mimetype: "audio/mpeg",
             fileName: `${title || "audio"}.mp3`,
-            caption: `> *© POWERED BY INDUWARA 〽️MD*`
+            caption: `> *© 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝙸𝙽𝙳𝚄𝚆𝙰𝚁𝙰 〽️𝙳*`
         }, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        reply("❌ Something went wrong. Please try again.");
+        reply("❌ The misconception has been incorrect. Please try again.");
     }
 });
 
-// 🎥 Fast Video Downloader (No external API)
-cmd({
-    pattern: "mp4",
-    alias: ["video", "ytv"],
-    react: "🎥",
-    desc: "Download Youtube video fast",
-    category: "main",
-    use: '.video < Yt url or Name >',
-    filename: __filename
-}, async (conn, mek, m, { from, q, reply }) => {
-    try {
-        if (!q) return reply("❌ Please provide a YouTube URL or video name!");
+//yt video
 
+cmd({ 
+    pattern: "mp4", 
+    alias: ["video", "ytv"], 
+    react: "🎥", 
+    desc: "Download Youtube song", 
+    category: "main", 
+    use: '.video < Yt url or Name >', 
+    filename: __filename 
+}, async (conn, mek, m, { from, prefix, quoted, q, reply }) => { 
+    try { 
+        if (!q) return await reply("*❌ Please provide a Query or Youtube URL!*");
+        
         const yt = await ytsearch(q);
-        if (!yt.results || yt.results.length < 1) return reply("No results found!");
+        if (yt.results.length < 1) return reply("No results found!");
+        
+        let yts = yt.results[0];  
+        let apiUrl = `https://apis.davidcyriltech.my.id/download/ytmp4?url=${encodeURIComponent(yts.url)}`;
+        
+        let response = await fetch(apiUrl);
+        let data = await response.json();
+        
+        if (data.status !== 200 || !data.success || !data.result.download_url) {
+            return reply("Failed to fetch the video. Please try again later.");
+        }
+        
 
-        let yts = yt.results[0];
-        let mp4 = await ytmp4(yts.url); // Direct download link
-
-        const { url, title, image, timestamp, ago, views, author } = yts;
-
-        let ytmsg = `*🎬 INDUWARA MD VIDEO DOWNLOADER*\n\n` +
+        let ytmsg = `*🎬 INDUWARA-MD VIDEO DOWNLOADER*\n\n` +
             `╭━━━━━━━━━━━━━━━┈⊷\n` +
             `│ 🎬 *Title:* ${title || "Unknown"}\n` +
             `│ ⏳ *Duration:* ${timestamp || "Unknown"}\n` +
@@ -89,28 +97,26 @@ cmd({
             `│ 👤 *Author:* ${author?.name || "Unknown"}\n` +
             `│ 🖇 *Url:* ${url || "Unknown"}\n` +
             `│\n` +
-            `│ 🔽 *Auto downloading....*\n` +
+            `│ 🔽 *Auto downloading....:*\n` +
             `╰──────────────┈⊷\n` +
-            `> *© POWERED BY INDUWARA 〽️MD*`;
+            `> *© 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝙸𝙽𝙳𝚄𝚆𝙰𝚁𝙰 〽️𝙳*`;
 
         // Send video details
-        await conn.sendMessage(from, { image: { url: image || '' }, caption: ytmsg }, { quoted: mek });
-
-        // Send video fast (buffer method)
-        let res = await fetch(mp4.dl_link);
-        let buffer = await res.buffer();
-        await conn.sendMessage(from, { video: buffer, mimetype: "video/mp4" }, { quoted: mek });
-
-        // Optional: Send as document
-        await conn.sendMessage(from, {
-            document: buffer,
-            mimetype: "video/mp4",
-            fileName: `${title || "video"}.mp4`,
-            caption: `> *© POWERED BY INDUWARA 〽️MD*`
+        await conn.sendMessage(from, { image: { url: data.result.thumbnail || '' }, caption: ytmsg }, { quoted: mek });
+        
+        // Send video file
+        await conn.sendMessage(from, { video: { url: data.result.download_url }, mimetype: "video/mp4" }, { quoted: mek });
+        
+        // Send document file (optional)
+        await conn.sendMessage(from, { 
+            document: { url: data.result.download_url }, 
+            mimetype: "video/mp4", 
+            fileName: `${data.result.title}.mp4`, 
+            caption: `*${yts.title}*\n> *© 𝙿𝙾𝚆𝙴𝚁𝙳 𝙱𝚈 𝙸𝙽𝙳𝚄𝚆𝙰𝚁𝙰 〽️𝙳*`
         }, { quoted: mek });
 
     } catch (e) {
         console.log(e);
-        reply("❌ Something went wrong. Please try again.");
+        reply("An error occurred. Please try again later.");
     }
-});    
+});  
