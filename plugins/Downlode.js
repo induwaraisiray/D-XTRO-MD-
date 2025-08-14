@@ -28,7 +28,7 @@ const safe = (v, d = null) => (v === undefined || v === null ? d : v);
 cmd(
   {
     pattern: "facebook",
-    react: "🎥",
+    react: "🎁",
     alias: ["fbb", "fbvideo", "fb"],
     desc: "Download videos from Facebook",
     category: "download",
@@ -98,7 +98,7 @@ cmd(
   {
     pattern: "img",
     alias: ["image", "googleimage", "searchimg"],
-    react: "🦋",
+    react: "🏜️",
     desc: "Search and download Google images",
     category: "fun",
     use: ".img <keywords>",
@@ -132,7 +132,7 @@ cmd(
           from,
           {
             image: { url: imageUrl },
-            caption: `📷 Result for: ${query}\n> © Powered by JesterTechX`,
+            caption: `📷 Result for: ${query}\n> *© ᴩᴏᴡᴇʀᴅ ʙʏ ɪɴᴅᴜᴡᴀʀᴀ 〽️ᴅ*`,
           },
           { quoted: mek }
         );
@@ -259,7 +259,7 @@ cmd(
     alias: ["ytcommunity", "ytc"],
     desc: "Download a YouTube community post",
     category: "downloader",
-    react: "🎥",
+    react: "📝",
     filename: __filename,
   },
   async (conn, mek, m, { from, q, reply }) => {
@@ -523,7 +523,7 @@ cmd(
     pattern: "mediafire",
     alias: ["mfire"],
     desc: "To download MediaFire files.",
-    react: "🎥",
+    react: "Ⓜ️",
     category: "download",
     filename: __filename,
   },
@@ -576,63 +576,65 @@ cmd(
 );
 
 /* ======================= APK DOWNLOADER ======================= */
-
 cmd(
   {
-    pattern: "apk",
-    desc: "Search & download APK from apkfab",
-    category: "downloads",
-    use: ".apk <query>",
-    react: "📱",
-}, async (darknero, match, me, { text }) => {
-
-    if (!text) {
-        return match.reply(
-            '🔍 Please enter a search term.\n\n*Example:* .apkfab http injector'
-        );
+  pattern: "apk",
+  desc: "Download APK from Aptoide.",
+  category: "download",
+  filename: __filename
+}, async (conn, m, store, {
+  from,
+  quoted,
+  q,
+  reply
+}) => {
+  try {
+    if (!q) {
+      return reply("❌ Please provide an app name to search.");
     }
 
-    try {
-        // Search for the app
-        const search = await axios.get(
-            `https://suhas-bro-api.vercel.app/search/apkfab?q=${encodeURIComponent(text)}`
-        );
+    await conn.sendMessage(from, { react: { text: "⏳", key: m.key } });
 
-        if (!search.data.result || !search.data.result.length) {
-            return match.reply('❌ No results found.');
-        }
+    const apiUrl = `http://ws75.aptoide.com/api/7/apps/search/query=${q}/limit=1`;
+    const response = await axios.get(apiUrl);
+    const data = response.data;
 
-        const app = search.data.result[0];
-
-        // Get download link
-        const download = await axios.get(
-            `https://suhas-bro-api.vercel.app/download/apkfab?url=${encodeURIComponent(app.link)}`
-        );
-
-        const dl = download.data.result;
-
-        // Send APK file
-        await darknero.sendMessage(
-            me.chat,
-            {
-                document: { url: dl.link },
-                fileName: app.title + '.apk',
-                mimetype: 'application/vnd.android.package-archive',
-                caption: (
-                    `📲 *${app.title}*` +
-                    `\n⭐ Rating: *${app.rating}*` +
-                    `\n💬 Reviews: *${app.review}*` +
-                    `\n📦 Size: *${dl.size}*`
-                ).trim()
-            },
-            { quoted: match }
-        );
-
-    } catch (error) {
-        console.log(error);
-        match.reply('⚠️ Error occurred while processing your request.');
+    if (!data || !data.datalist || !data.datalist.list.length) {
+      return reply("⚠️ No results found for the given app name.");
     }
 
+    const app = data.datalist.list[0];
+    const appSize = (app.size / 1048576).toFixed(2); // Bytes → MB
+    const caption = `╭━━━〔 *APK Downloader* 〕━━━┈⊷
+┃ 📦 *Name:* ${app.name}
+┃ 🏋 *Size:* ${appSize} MB
+┃ 📦 *Package:* ${app.package}
+┃ 📅 *Updated On:* ${app.updated}
+┃ 👨‍💻 *Developer:* ${app.developer.name}
+╰━━━━━━━━━━━━━━━┈⊷
+> *ᴩᴏᴡᴇʀᴅ ʙʏ ɪɴᴅᴜᴡᴀʀᴀ 〽️ᴅ*`;
+
+    // Send App Icon + Details first
+    await conn.sendMessage(from, {
+      image: { url: app.icon },
+      caption: caption
+    }, { quoted: m });
+
+    // Then send APK file
+    await conn.sendMessage(from, { react: { text: "⬇️", key: m.key } });
+    await conn.sendMessage(from, {
+      document: { url: app.file.path_alt },
+      fileName: `${app.name}.apk`,
+      mimetype: "application/vnd.android.package-archive",
+      caption: caption
+    }, { quoted: m });
+
+    await conn.sendMessage(from, { react: { text: "✅", key: m.key } });
+
+  } catch (error) {
+    console.error("Error:", error);
+    reply("❌ An error occurred while fetching the APK. Please try again.");
+  }
 });
 /* ======================= GOOGLE DRIVE DOWNLOADER ======================= */
 cmd(
@@ -758,80 +760,86 @@ cmd(
 cmd(
   {
     pattern: "xv",
-    desc: "XNXX Search and Download",
+    desc: "Xv Search & Download",
     category: "download",
     use: ".xv <query>",
     react: "🔞",
   },
   async (darknero, match, m, { text }) => {
-    if (!text)
-      return match.reply(
-        "🔍 Enter a search term!\n\n*Example:* `.xnxx hot`"
-      );
+    if (!text) return match.reply("🔍 Enter a search term!\n\n*Example:* `.xnxx hot`");
 
     try {
-      // Step 1: Search videos
       const search = await axios.get(
-        `https://api.vreden.my.id/api/xnxxsearch?query=${encodeURIComponent(
-          text
-        )}`
+        `https://api.vreden.my.id/api/xnxxsearch?query=${encodeURIComponent(text)}`
       );
-      const result = search.data?.result?.[0];
-      if (!result) return match.reply("❌ No results found.");
+      const results = search.data?.result;
+      if (!results || !results.length) return match.reply("❌ No results found.");
 
-      // Step 2: Download video info
+      const top10 = results.slice(0, 10);
+
+      // Send each result with a download button
+      for (let i = 0; i < top10.length; i++) {
+        const vid = top10[i];
+
+        await darknero.sendMessage(
+          m.chat,
+          {
+            image: { url: vid.image },
+            caption: `*${i + 1}.* ${vid.title}\n🕒 ${vid.duration}\n\nClick the button below to download.`,
+            footer: "*🔞 ᴩᴏᴡᴇʀᴅ ʙʏ ɪɴᴅᴜᴡᴀʀᴀ ᴍᴅ*",
+            buttons: [
+              {
+                buttonId: `.xnxxdl ${encodeURIComponent(vid.link)}`,
+                buttonText: { displayText: "⬇ Download" },
+                type: 1,
+              }
+            ],
+            headerType: 4,
+          },
+          { quoted: m }
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      match.reply("❌ Error occurred while searching.");
+    }
+  }
+);
+
+// Download command
+cmd(
+  {
+    command: "xvdl",
+    desc: "Download Xv video",
+    category: "download",
+    use: ".xvdl <link>",
+  },
+  async (darknero, match, m, { text }) => {
+    if (!text) return match.reply("⚠️ No link provided.");
+
+    try {
       const download = await axios.get(
-        `https://api.vreden.my.id/api/xnxxdl?query=${encodeURIComponent(
-          result.link
-        )}`
+        `https://api.vreden.my.id/api/xnxxdl?query=${encodeURIComponent(text)}`
       );
       const video = download.data?.result?.result;
-      if (!video?.files?.high)
-        return match.reply("⚠️ Could not get download link.");
+      if (!video?.files?.high) return match.reply("⚠️ Could not get download link.");
 
-      // Step 3: Send thumbnail + info
-      await darknero.sendMessage(
-        m.chat,
-        {
-          image: { url: video.image },
-          caption:
-            `🔞 *${video.title}*\n\n🎞️ Duration: *${video.duration}s*\n\n` +
-            `> Join Support\nhttps://www.whatsapp.com/channel/0029Vb6Xm9H96H4SgVAD7E1M/182`,
-        },
-        { quoted: m }
-      );
-
-      // Step 4: Send video
       await darknero.sendMessage(
         m.chat,
         {
           video: { url: video.files.high },
           mimetype: "video/mp4",
-          caption: "*DONE...✅*",
-          contextInfo: {
-            forwardingScore: 999,
-            isForwarded: true,
-            externalAdReply: {
-              title: video.title.trim(),
-              body: "Powered by induwara",
-              mediaType: 1,
-              previewType: 0,
-              renderLargerThumbnail: true,
-              thumbnailUrl: video.image,
-              sourceUrl: result.link,
-              mediaUrl: result.link,
-              showAdAttribution: true,
-            },
-          },
+          caption: `✅ *${video.title}*`,
         },
         { quoted: m }
       );
     } catch (err) {
       console.error(err);
-      match.reply("❌ Error occurred while fetching the video.");
+      match.reply("❌ Error downloading video.");
     }
   }
 );
+            
 /* ======================= MOVIE INFO ======================= */
 cmd(
   {
