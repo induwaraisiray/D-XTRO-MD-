@@ -536,7 +536,7 @@ cmd(
       await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
       const { data } = await axios.get(
-        `https://www.dark-yasiya-api.site/download/mfire?url=${encodeURIComponent(
+        `https://supun-md-api-xmjh.vercel.app/api/mfire2?url=${encodeURIComponent(
           q
         )}`
       );
@@ -740,7 +740,7 @@ cmd(
             forwardingScore: 999,
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: "120363388320701164@newsletter",
+              newsletterJid: "120363388390701164@newsletter",
               newsletterName: "induwara",
               serverMessageId: 143,
             },
@@ -760,45 +760,38 @@ cmd(
 cmd(
   {
     pattern: "xv",
-    desc: "Xv Search & Download",
+    desc: "Xv Search & Download Menu",
     category: "download",
     use: ".xv <query>",
     react: "🔞",
   },
   async (darknero, match, m, { text }) => {
-    if (!text) return match.reply("🔍 Enter a search term!\n\n*Example:* `.xnxx hot`");
+    if (!text) return match.reply("🔍 Enter a search term!\n\n*Example:* `.xv hot`");
 
     try {
-      const search = await axios.get(
+      // Search API
+      const searchRes = await axios.get(
         `https://api.vreden.my.id/api/xnxxsearch?query=${encodeURIComponent(text)}`
       );
-      const results = search.data?.result;
-      if (!results || !results.length) return match.reply("❌ No results found.");
+      const results = searchRes.data?.result;
+      if (!results || !results.length) {
+        return match.reply("❌ No results found.");
+      }
 
       const top10 = results.slice(0, 10);
 
-      // Send each result with a download button
-      for (let i = 0; i < top10.length; i++) {
-        const vid = top10[i];
+      // Save results for later download selection
+      xvSearchCache[m.sender] = top10;
 
-        await darknero.sendMessage(
-          m.chat,
-          {
-            image: { url: vid.image },
-            caption: `*${i + 1}.* ${vid.title}\n🕒 ${vid.duration}\n\nClick the button below to download.`,
-            footer: "*🔞 ᴩᴏᴡᴇʀᴅ ʙʏ ɪɴᴅᴜᴡᴀʀᴀ ᴍᴅ*",
-            buttons: [
-              {
-                buttonId: `.xnxxdl ${encodeURIComponent(vid.link)}`,
-                buttonText: { displayText: "⬇ Download" },
-                type: 1,
-              }
-            ],
-            headerType: 4,
-          },
-          { quoted: m }
-        );
-      }
+      // Build menu text
+      let menuText = `🔞 *Top XV Search Results for:* _${text}_\n\n`;
+      top10.forEach((vid, index) => {
+        menuText += `*${index + 1}.* ${vid.title}\n🕒 ${vid.duration}\n\n`;
+      });
+      menuText += `\n💬 *Reply with the number (1-${top10.length}) to download the video.*`;
+
+      await darknero.sendMessage(m.chat, { text: menuText }, { quoted: m });
+
     } catch (err) {
       console.error(err);
       match.reply("❌ Error occurred while searching.");
@@ -806,36 +799,43 @@ cmd(
   }
 );
 
-// Download command
+// Handle number reply
 cmd(
   {
-    command: "xvdl",
-    desc: "Download Xv video",
-    category: "download",
-    use: ".xvdl <link>",
+    on: "text"
   },
   async (darknero, match, m, { text }) => {
-    if (!text) return match.reply("⚠️ No link provided.");
+    if (!xvSearchCache[m.sender]) return; // No active search
+
+    const choice = parseInt(text.trim());
+    const results = xvSearchCache[m.sender];
+
+    if (isNaN(choice) || choice < 1 || choice > results.length) {
+      return match.reply(`⚠️ Please enter a number between 1 and ${results.length}`);
+    }
+
+    const selectedVid = results[choice - 1];
 
     try {
-      const download = await axios.get(
-        `https://api.vreden.my.id/api/xnxxdl?query=${encodeURIComponent(text)}`
+      // Download API
+      const dlRes = await axios.get(
+        `https://api.vreden.my.id/api/xnxxdl?query=${encodeURIComponent(selectedVid.link)}`
       );
-      const video = download.data?.result?.result;
-      if (!video?.files?.high) return match.reply("⚠️ Could not get download link.");
+      const videoData = dlRes.data?.result?.files;
+      if (!videoData?.high) {
+        return match.reply("⚠️ Could not get download link.");
+      }
 
-      await darknero.sendMessage(
-        m.chat,
-        {
-          video: { url: video.files.high },
-          mimetype: "video/mp4",
-          caption: `✅ *${video.title}*`,
-        },
-        { quoted: m }
-      );
+      await darknero.sendMessage(m.chat, {
+        video: { url: videoData.high },
+        caption: `✅ *${selectedVid.title}*\n\n🕒 ${selectedVid.duration}`
+      }, { quoted: m });
+
+      delete xvSearchCache[m.sender]; // Clear cache after download
+
     } catch (err) {
       console.error(err);
-      match.reply("❌ Error downloading video.");
+      match.reply("❌ Error occurred while downloading.");
     }
   }
 );
