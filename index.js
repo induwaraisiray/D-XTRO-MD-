@@ -118,7 +118,8 @@ const port = process.env.PORT || 9090;
   console.log('Plugins installed successful ✔️')
   console.log('Bot connected to whatsapp 👋')
   
-let up = `╭──〔  🤖 *INDUWARA-MD SYSTEM*─●●►
+let up = `
+`╭──〔  🤖 *INDUWARA-MD SYSTEM*─●●►
 │ ✅ *Status:* Activated & Ready  
 │ ⚡ *Performance:* Ultra-Fast | Smart  
 │ 🔐 *Security:* End-to-End Protected  
