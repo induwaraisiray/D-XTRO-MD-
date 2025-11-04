@@ -1,89 +1,85 @@
-// Zepix AI - Aviator Signal යාලුවා v2.0 (Live LK Time + 32s Gap)
-// WhatsApp Bot Plugin
+// Zepix AI v5.0 - ඔයාගේ PROMPT 100% ON
 const { cmd } = require('../command');
 const axios = require('axios');
 const moment = require('moment-timezone');
 moment.tz.setDefault('Asia/Colombo');
-moment.locale('si');
+
+// <<<<<<< ඔයාගේ PROMPT එක >>>>>>>
+const ZEPPIX_AI_PROMPT = `ඔයා Zepix AI - Aviator Gap God බ්‍රෝ!
+Pattern එක: {PATTERN}
+10× ට වැඩි odds තිබුණ indices: {HIGH_INDICES}
+Average gap: {AVG_GAP} rounds
+
+නීති:
+1. හැම signal එකකම 10× fixed
+2. දෙවෙනි odd එක AI predict කරන්න (10.00 - 99.99)
+3. Time එක = දැන් ඉඳන් {AVG_GAP} rounds බැගින් +32s
+4. Live LK Time එක දාන්න
+5. Format:
+1. 21:40:33 → 10× / 45.78×
+2. 21:42:09 → 10× / 67.12×
+
+Output ONLY 5 lines. No extra text. Base time: {NOW}`;
 
 cmd({
     pattern: "zepix",
-    alias: ["signal", "avi", "chart"],
-    desc: "Zepix AI - Live Aviator Signals බ්‍රෝ! ✈️",
-    category: "game",
+    alias: ["10x", "gap", "pro"],
+    desc: "Zepix AI - ඔයාගේ Gap God මචං! ✈️",
     react: "✈️",
-    filename: __filename
 },
 async (conn, mek, m, { from, q, reply }) => {
     try {
-        const text = q?.toLowerCase().trim();
-
-        // Live Base Time
-        let base = moment();
-        const formatTime = (addSec) => base.clone().add(addSec, 'seconds').format('HH:mm:ss');
-
-        // AI Predict Second Multiplier
-        const getSecondOdd = async (pattern) => {
-            const prompt = `Pattern: ${pattern || "Random"}
-10× fixed. දෙවෙනි odd එක predict කරන්න (10.00 - 99.99).
-Output ONLY number. Example: 34.56`;
-            try {
-                const res = await axios.get(`https://sadiya-tech-apis.vercel.app/ai/gemini`, {
-                    params: { q: prompt, apikey: 'dinesh-api-key' }
-                });
-                const num = parseFloat(res.data?.result || res.data || "23.45");
-                return isNaN(num) ? "23.45" : num.toFixed(2);
-            } catch {
-                return (Math.random() * 89 + 10).toFixed(2);
-            }
-        };
-
-        // Generate 5 Signals
-        const generateLiveSignals = async (type) => {
-            let signals = `✈️ *Zepix AI - LIVE SIGNALS බ්‍රෝ!* ✈️\n`;
-            signals += `🕐 Base: ${formatTime(0)}\n\n`;
-
-            for (let i = 1; i <= 5; i++) {
-                const sec = i * 32;
-                const time = formatTime(sec);
-                const secondOdd = await getSecondOdd(q);
-                signals += `${i}. ${time} → 10× / ${secondOdd}×\n`;
-                if (i < 5) signals += `   ⏳ +32s gap\n`;
-            }
-            signals += `\n💸 කීයක් cashout කළා මචං? Screenshot එව්වකෝ! 🔥`;
-            return signals;
-        };
-
-        // signal10× or signalall
-        if (text.includes('signal10') || text.includes('10') || text.includes('all') || text === '') {
-            reply("🚨 බ්‍රෝ signals loading... 32s gap එකෙන් එනවා! ⏰");
-            const livePack = await generateLiveSignals();
-            return reply(livePack);
-        }
-
-        // Chart Pattern
         const nums = q.match(/[\d.]+/g);
-        if (nums && nums.length >= 3) {
-            reply(`📊 Pattern lock කළා: ${nums.slice(-4).join(', ')}\n⏰ Live signals එනවා...`);
-            const livePack = await generateLiveSignals();
-            return reply(livePack);
+        if (!nums || nums.length < 4) {
+            return reply(`මචං pattern එක එවන්න!\nඋදා: .zepix 1.2,30.5,1.5,15.8`);
         }
 
-        // Menu
-        reply(`✈️ *Yo මචං! Zepix AI එක ready!* ✈️
+        const odds = nums.map(n => parseFloat(n));
+        const high = odds.map((o,i) => o >= 10 ? i : -1).filter(i => i !== -1);
+        
+        if (high.length < 2) {
+            return reply("මචං 10× ට වැඩි odd 2ක් හරි ඕනෑ! 🙏");
+        }
 
-🔥 විධාන:
-.zepix → Live 5 signals (10× / XX×)
-.zepix signal10× → same
-.zepix 1.2,30.1,2.3 → pattern analyze
+        // Gap Calculate
+        const gaps = [];
+        for (let i = 1; i < high.length; i++) gaps.push(high[i] - high[i-1]);
+        const avgGap = Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length);
 
-⏰ 32s gap | Live LK Time
-අද කීයක් 10× cashout කළා? Screenshot එව්වකෝ! 🏆`);
+        reply(`🔥 Gap Detect කළා බ්‍රෝ!\n📊 10× odds: ${high.map(i=>odds[i]+'×').join(' → ')}\n⏱ Avg Gap: ${avgGap} rounds\n🧠 AI predicting...`);
 
-        conn.sendMessage(from, { react: { text: "🔥", key: mek.key } });
+        // PROMPT READY
+        const now = moment().format('HH:mm:ss');
+        const finalPrompt = ZEPPIX_AI_PROMPT
+            .replace('{PATTERN}', odds.join(', '))
+            .replace('{HIGH_INDICES}', high.join(', '))
+            .replace('{AVG_GAP}', avgGap)
+            .replace('{NOW}', now);
+
+        // AI CALL
+        const res = await axios.get(`https://sadiya-tech-apis.vercel.app/ai/gemini`, {
+            params: { q: finalPrompt, apikey: 'dinesh-api-key' }
+        });
+
+        const aiLines = res.data?.result || res.data || fallback(avgGap, now);
+
+        const output = `✈️ *Zepix AI - 10× GAP PRO* ✈️\n🕐 Base: ${now}\n📏 Gap: ${avgGap} rounds\n\n${aiLines}\n\n💸 Cashout @1.5× safe! Screenshot එව්වකෝ බ්‍රෝ! 🏆`;
+        reply(output);
 
     } catch (e) {
-        console.error(e);
-        reply("❌ බ්‍රෝ crash! .zepix කියලා නැවත try කරමු! 💪");
+        reply("AI crash බ්‍රෝ! නැවත try කරමු 💪");
     }
 });
+
+// Fallback
+function fallback(gap, now) {
+    let out = "", sec = 0;
+    const base = moment();
+    for (let i = 1; i <= 5; i++) {
+        sec += gap * 32;
+        const time = base.clone().add(sec, 'seconds').format('HH:mm:ss');
+        const odd = (Math.random()*89+10).toFixed(2);
+        out += `${i}. ${time} → 10× / ${odd}×\n`;
+    }
+    return out;
+}
