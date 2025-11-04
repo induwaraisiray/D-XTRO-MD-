@@ -91,7 +91,7 @@ async (conn, mek, m, { from, q, reply }) => {
 .zepix signalall   ➜ 2×+ 5 signals  
 .zepix 10.2,30.1,1.5,2.3  ➜ Pattern analyze  
 
-⏰ Live LK Time | 💯 Gemini AI Powered  
+⏰ Live LK Time | 💯 zepix AI Powered  
 අද කීයක් win කළා මචං? Screenshot එව්වකෝ – මම proud වෙන්නම්! 🏆  
 ගමු moon එකට! 🚀`);
 
