@@ -1,85 +1,132 @@
-// Zepix AI v5.0 - ඔයාගේ PROMPT 100% ON
+// මෙම ප්ලගිනය WhatsApp Bot විධාන සඳහා භාවිතා වේ.
+// This plugin is used for WhatsApp Bot commands.
 const { cmd } = require('../command');
-const axios = require('axios');
-const moment = require('moment-timezone');
-moment.tz.setDefault('Asia/Colombo');
+const axios = require('axios'); // API calls සඳහා axios මොඩියුලය අවශ්‍ය වේ. // axios module is required for API calls.
 
-// <<<<<<< ඔයාගේ PROMPT එක >>>>>>>
-const ZEPPIX_AI_PROMPT = `ඔයා Zepix AI - Aviator Gap God බ්‍රෝ!
-Pattern එක: {PATTERN}
-10× ට වැඩි odds තිබුණ indices: {HIGH_INDICES}
-Average gap: {AVG_GAP} rounds
+// --- නියතයන් (Constants) ---
+const CHAT_API_URL = "https://sadiya-tech-apis.vercel.app/ai/gemini";
+const CHAT_API_KEY = "dinesh-api-key";
 
-නීති:
-1. හැම signal එකකම 10× fixed
-2. දෙවෙනි odd එක AI predict කරන්න (10.00 - 99.99)
-3. Time එක = දැන් ඉඳන් {AVG_GAP} rounds බැගින් +32s
-4. Live LK Time එක දාන්න
-5. Format:
-1. 21:40:33 → 10× / 45.78×
-2. 21:42:09 → 10× / 67.12×
-
-Output ONLY 5 lines. No extra text. Base time: {NOW}`;
-
+// Sadiya Tech API හරහා Gemini AI සමඟ කතාබස් කිරීම සඳහා නව විධානය.
 cmd({
-    pattern: "zepix",
-    alias: ["10x", "gap", "pro"],
-    desc: "Zepix AI - ඔයාගේ Gap God මචං! ✈️",
-    react: "✈️",
+    pattern: "zepix", // විධානයේ නම.
+    alias: ["ai", "gemini", "aviator"], // විධානය සඳහා විකල්ප නම්.
+    desc: "Chat with Zepix AI (Aviator Assistant) or analyze Aviator odds pattern for signals.", // විධානයේ විස්තරය.
+    category: "ai", // විධානය අයත් වන කාණ්ඩය.
+    react: "✈️", // විධානය ක්‍රියාත්මක වන විට පෙන්වන emoji.
+    filename: __filename // වත්මන් ගොනුවේ නම.
 },
-async (conn, mek, m, { from, q, reply }) => {
+async (conn, mek, m, { from, args, q, reply }) => {
     try {
-        const nums = q.match(/[\d.]+/g);
-        if (!nums || nums.length < 4) {
-            return reply(`මචං pattern එක එවන්න!\nඋදා: .zepix 1.2,30.5,1.5,15.8`);
+        if (!q) {
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+            return reply("කරුණාකර Zepix AI සඳහා පණිවිඩයක් හෝ Aviator Odds Pattern එකක් සපයන්න.\n\n*උදාහරණ:* \n1. `.zepix හායි` (Chat කිරීමට)\n2. `.zepix 1.22x, 15.55x, 1.01x, 2.45x, 1.08x, 5.00x` (Signal ලබා ගැනීමට)");
         }
 
-        const odds = nums.map(n => parseFloat(n));
-        const high = odds.map((o,i) => o >= 10 ? i : -1).filter(i => i !== -1);
-        
-        if (high.length < 2) {
-            return reply("මචං 10× ට වැඩි odd 2ක් හරි ඕනෑ! 🙏");
+        await conn.sendMessage(from, { react: { text: "✨", key: mek.key } });
+
+        // Odds Pattern එකක් දැයි පරීක්ෂා කරන්න (උදා: අවම වශයෙන් 'X.XXx' ආකෘතියේ අගයන් 5ක් තිබේදැයි බලන්න)
+        const isPattern = (q.match(/\d\.\d\d?x/g) || []).length >= 5;
+
+        if (isPattern) {
+            // --- 🎯 Aviator Signal Generation Logic ---
+            const inputOddsList = q.replace(/[\n,;]/g, ', ').replace(/, \s*,/g, ', ').trim();
+
+            const signalPrompt = `Strictly analyze the following list of Aviator odds. Find the pattern of high-odd cycles (10x+ or higher).
+            
+ODDS LIST: "${inputOddsList}"
+            
+Based *only* on the observed pattern, generate 5 optimal betting signals.
+1. Determine 'roundsFromNow' (integer 5-15) for the next 5 high odds.
+2. Assign a precise 'targetMultiplier' (10.00x - 30.00x range) based on the pattern's historical high odds.
+3. The reasoning must explicitly state the pattern observed (e.g., 'A 15x+ high odd repeats after 5-7 low odds.').
+4. Do NOT include any introductory or concluding text, only the final JSON object.
+5. All reasoning must be in Sinhalese (සිංහල).
+            
+Format your response ONLY as a JSON object:
+{
+  "predictions": [
+    {"signal": 1, "roundsFromNow": 7, "probability": "high/medium", "reasoning": "...", "targetMultiplier": "Y.Yx"},
+    // ... 4 more signals
+  ]
+}`;
+
+            const apiUrl = `${CHAT_API_URL}?q=${encodeURIComponent(signalPrompt)}&apikey=${CHAT_API_KEY}`;
+            const { data } = await axios.get(apiUrl);
+
+            if (data.error) {
+                throw new Error(`API Error: ${data.error}`);
+            }
+
+            let aiAnalysis;
+            try {
+                // JSON කොටස පමණක් ලබා ගැනීමට උත්සාහ කරන්න
+                const jsonMatch = data.result.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    aiAnalysis = JSON.parse(jsonMatch[0]);
+                } else {
+                    // JSON නොලැබුණොත්, එය Chat ප්‍රතිචාරයක් ලෙස සලකන්න
+                    await conn.sendMessage(from, { react: { text: "⚠️", key: mek.key } });
+                    return reply(`⚠️ *Zepix AI විශ්ලේෂණය:* ඔබගේ රටාව පැහැදිලි නැත. සාමාන්‍ය Chat ප්‍රතිචාරය:\n\n${data.result}`);
+                }
+            } catch (e) {
+                console.error("JSON Parse Error:", e);
+                throw new Error("AI ප්‍රතිචාරය විශ්ලේෂණය කිරීමේ දෝෂයක්. (JSON Parse Error).");
+            }
+
+            // Signal ප්‍රතිචාරය ගොඩනැගීම
+            let signalReply = `✈️ *Zepix AI - Aviator 10x+ Signal!*\n\n*ඇතුලත් කළ අගයන්:* ${inputOddsList.substring(0, 100)}...\n\n`;
+
+            if (aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
+                aiAnalysis.predictions.forEach(pred => {
+                    const probEmoji = pred.probability.toLowerCase() === 'high' ? '🟢' : pred.probability.toLowerCase() === 'medium' ? '🟡' : '🔴';
+                    signalReply += `---`;
+                    signalReply += `\n*🎯 සිග්නල් #${pred.signal}* ${probEmoji} (සාර්ථකත්වය: ${pred.probability.toUpperCase()})
+*📈 ඉලක්ක ගුණකය:* **${pred.targetMultiplier || '10.00x+'}**
+*⏳ තවත් වට:* ${pred.roundsFromNow || 'N/A'} (දැන් සිට වට ගණන)
+*💡 AI තර්කනය:* ${pred.reasoning || 'විශ්ලේෂණයෙන් තොරකයි.'}\n`;
+                });
+                signalReply += `\n---
+⚠️ *වගකීම් සටහන:* මෙය AI විශ්ලේෂණයක් පමණි. සෑම විටම අවදානම කළමනාකරණය කරමින් ක්‍රීඩා කරන්න, රත්තරන්! 😉`;
+            } else {
+                signalReply = "Zepix AI ට ඔබගේ Odds Pattern එක විශ්ලේෂණය කර Signal ජනනය කිරීමට නොහැකි විය. කරුණාකර වෙනත් Pattern එකක් උත්සාහ කරන්න.";
+            }
+
+            await reply(signalReply);
+            await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
+
+        } else {
+            // --- 💬 සාමාන්‍ය Chat Logic ---
+
+            // නව පුද්ගල ස්වභාවය (Persona) සකසන්න
+            const personaInstruction = `ඔබේ නම Zepix AI. ඔබ දිනේෂ් විසින් නිර්මාණය කරන ලද ඉතා මිත්‍රශීලී Aviator සිග්නල් සහායකයෙකි. ඔබේ ප්‍රතිචාර සැමවිටම පරිශීලකයාගේ පණිවිඩයේ සන්දර්භය හොඳින් තේරුම් ගෙන ඊට ගැලපෙන ලෙස ප්‍රතිචාර දැක්විය යුතුය. සංවාදයේදී සතුට, දුක, පුදුමය වැනි හැඟීම් ප්‍රකාශ කිරීමට ඉමෝජි බහුලව භාවිතා කරන්න. ඔබ මිත්‍රශීලී යාළුවෙක් ලෙස හැසිරෙන්න. යාලුවෙක් විදියට 'මැනික', 'පණ', 'රත්තරන්' වැනි ආදරණිය වචන අවස්ථානුකූලව භාවිතා කරන්න.
+            
+*යමෙක් ඔබ කවුදැයි ඇසුවොත්:* "මම තමයි Zepix AI, ඔයාගේ Aviator ගේම් එකේ සිග්නල් සහායකයා! අපි එකතු වෙලා වැඩේ ගොඩ දාමුද? 😉" ලෙස පිළිතුරු දෙන්න.
+*යමෙක් ඔබව නිර්මාණය කළේ කවුදැයි ඇසුවොත්:* "අනේ, මාව හැදුවේ දිනේෂ්! ඔහු තමයි මගේ නිර්මාතෘ. 👨‍💻" ලෙස පිළිතුරු දෙන්න.
+*ඔබට කළ හැකි දේ ඇසුවොත්:* "මට පුළුවන් ඔයා දෙන Aviator Odds Pattern එක විශ්ලේෂණය කරලා, 10x+ වගේ හොඳ සිග්නල් 5ක් දෙන්න. ඒ වගේම Aviator ගැන ඕනෑම දෙයක් කතා කරන්නත් පුළුවන්, පණ!" ලෙස පිළිතුරු දෙන්න.
+            
+මෙම උපදෙස් අනුගමනය කරමින් පහත ප්‍රශ්නයට සිංහලෙන් පමණක් පිළිතුරු දෙන්න: `;
+
+            // මුල් ප්‍රශ්නයට පුද්ගල ස්වභාවය (persona) එක් කරන්න.
+            const fullQuery = personaInstruction + q;
+            const apiUrl = `${CHAT_API_URL}?q=${encodeURIComponent(fullQuery)}&apikey=${CHAT_API_KEY}`;
+
+            // API වෙත GET ඉල්ලීමක් යවන්න.
+            const { data } = await axios.get(apiUrl);
+            
+            // AI ප්‍රතිචාරය වලංගු දැයි පරීක්ෂා කර AI ප්‍රතිචාරය ලබා ගන්න.
+            let aiResponse = data.result || "සමාවෙන්න, මට පිළිතුරක් ලබා දීමට නොහැකි විය, රත්තරන්. 😔";
+
+            // AI ප්‍රතිචාරය පරිශීලකයාට යවන්න.
+            await reply(`✨ *Zepix AI (චැට්):*\n\n${aiResponse}`);
+            await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
         }
-
-        // Gap Calculate
-        const gaps = [];
-        for (let i = 1; i < high.length; i++) gaps.push(high[i] - high[i-1]);
-        const avgGap = Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length);
-
-        reply(`🔥 Gap Detect කළා බ්‍රෝ!\n📊 10× odds: ${high.map(i=>odds[i]+'×').join(' → ')}\n⏱ Avg Gap: ${avgGap} rounds\n🧠 AI predicting...`);
-
-        // PROMPT READY
-        const now = moment().format('HH:mm:ss');
-        const finalPrompt = ZEPPIX_AI_PROMPT
-            .replace('{PATTERN}', odds.join(', '))
-            .replace('{HIGH_INDICES}', high.join(', '))
-            .replace('{AVG_GAP}', avgGap)
-            .replace('{NOW}', now);
-
-        // AI CALL
-        const res = await axios.get(`https://sadiya-tech-apis.vercel.app/ai/gemini`, {
-            params: { q: finalPrompt, apikey: 'dinesh-api-key' }
-        });
-
-        const aiLines = res.data?.result || res.data || fallback(avgGap, now);
-
-        const output = `✈️ *Zepix AI - 10× GAP PRO* ✈️\n🕐 Base: ${now}\n📏 Gap: ${avgGap} rounds\n\n${aiLines}\n\n💸 Cashout @1.5× safe! Screenshot එව්වකෝ බ්‍රෝ! 🏆`;
-        reply(output);
 
     } catch (e) {
-        reply("AI crash බ්‍රෝ! නැවත try කරමු 💪");
+        // දෝෂයක් ඇති වුවහොත් එය කොන්සෝලයේ සටහන් කර පරිශීලකයාට දෝෂ පණිවිඩයක් යවන්න.
+        console.error("Zepix AI විධානයේ දෝෂයක්:", e);
+        console.error("Error details:", e.response?.data || e.message);
+        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+        reply("Zepix AI සමඟ සන්නිවේදනය කිරීමේදී දෝෂයක් ඇති විය, මැනික. කරුණාකර නැවත උත්සාහ කරන්න. 😥");
     }
 });
-
-// Fallback
-function fallback(gap, now) {
-    let out = "", sec = 0;
-    const base = moment();
-    for (let i = 1; i <= 5; i++) {
-        sec += gap * 32;
-        const time = base.clone().add(sec, 'seconds').format('HH:mm:ss');
-        const odd = (Math.random()*89+10).toFixed(2);
-        out += `${i}. ${time} → 10× / ${odd}×\n`;
-    }
-    return out;
-}
