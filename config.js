@@ -21,7 +21,7 @@ BOT_NAME: process.env.BOT_NAME || "𝐙𝐄𝐏𝐈𝐗-𝐌𝐃",
 // add bot namw here for menu
 STICKER_NAME: process.env.STICKER_NAME || "𝐙𝐄𝐏𝐈𝐙-𝐌𝐃",
 // type sticker pack name 
-CUSTOM_REACT: process.env.CUSTOM_REACT || "true",
+CUSTOM_REACT: process.env.CUSTOM_REACT || "false",
 // make this true for custum emoji react    
 CUSTOM_REACT_EMOJIS: process.env.CUSTOM_REACT_EMOJIS || "💝,💖,💗,❤️‍🩹,❤️,🧡,💛,💚,💙,💜,🤎,🖤,🤍",
 // chose custom react emojis by yourself 
@@ -37,13 +37,13 @@ ALIVE_IMG: process.env.ALIVE_IMG || "https://files.catbox.moe/h7g8sj.jpg",
 // add img for alive msg
 LIVE_MSG: process.env.LIVE_MSG || "> *D-XTRO-MD*⚡",
 // add alive msg here 
-READ_MESSAGE: process.env.READ_MESSAGE || "true",
+READ_MESSAGE: process.env.READ_MESSAGE || "false",
 // Turn true or false for automatic read msgs
-AUTO_REACT: process.env.AUTO_REACT || "true",
+AUTO_REACT: process.env.AUTO_REACT || "false",
 // make this true or false for auto react on all msgs
 ANTI_BAD: process.env.ANTI_BAD || "true",
 // false or true for anti bad words  
-MODE: process.env.MODE || "public",
+MODE: process.env.MODE || "privet",
 // make bot public-private-inbox-group 
 ANTI_LINK: process.env.ANTI_LINK || "false",
 // make anti link true,false for groups 
