@@ -17,9 +17,9 @@ AUTO_STATUS_MSG: process.env.AUTO_STATUS_MSG || ".✓",
 // set the auto reply massage on status reply  
 PREFIX: process.env.PREFIX || ".",
 // add your prifix for bot   
-BOT_NAME: process.env.BOT_NAME || "D-XTRO-MD",
+BOT_NAME: process.env.BOT_NAME || "𝐙𝐄𝐏𝐈𝐗-𝐌𝐃",
 // add bot namw here for menu
-STICKER_NAME: process.env.STICKER_NAME || "D-XTRO-MD",
+STICKER_NAME: process.env.STICKER_NAME || "𝐙𝐄𝐏𝐈𝐙-𝐌𝐃",
 // type sticker pack name 
 CUSTOM_REACT: process.env.CUSTOM_REACT || "true",
 // make this true for custum emoji react    
@@ -33,7 +33,7 @@ OWNER_NAME: process.env.OWNER_NAME || "ᴍʀ ᴅɪɴᴇꜱʜ ᴏꜰᴄ",
 // add bot owner name
 DESCRIPTION: process.env.DESCRIPTION || "*© ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴍʀ ᴅɪɴᴇꜱʜ ᴏꜰᴄ*",
 // add bot owner name    
-ALIVE_IMG: process.env.ALIVE_IMG || "https://files.catbox.moe/ptas3k.JPG",
+ALIVE_IMG: process.env.ALIVE_IMG || "https://files.catbox.moe/h7g8sj.jpg",
 // add img for alive msg
 LIVE_MSG: process.env.LIVE_MSG || "> *D-XTRO-MD*⚡",
 // add alive msg here 
@@ -55,9 +55,9 @@ AUTO_REPLY: process.env.AUTO_REPLY || "true",
 // make true or false automatic text reply 
 ALWAYS_ONLINE: process.env.ALWAYS_ONLINE || "true",
 // maks true for always online 
-PUBLIC_MODE: process.env.PUBLIC_MODE || "true",
+PUBLIC_MODE: process.env.PUBLIC_MODE || "false",
 // make false if want private mod
-AUTO_TYPING: process.env.AUTO_TYPING || "true",
+AUTO_TYPING: process.env.AUTO_TYPING || "false",
 // true for automatic show typing   
 READ_CMD: process.env.READ_CMD || "false",
 // true if want mark commands as read 
