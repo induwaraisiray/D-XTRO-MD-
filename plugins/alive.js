@@ -13,7 +13,7 @@ cmd({
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
         // System status message
-        const status = `╭━━〔 *D-XTRO-MD* 〕━━┈⊷
+        const status = `╭━━〔 *ZEPIX-AI* 〕━━┈⊷
 ┃◈╭─────────────·๏
 ┃◈┃• *⏳Uptime*:  ${runtime(process.uptime())} 
 ┃◈┃• *📟 Ram usage*: ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}MB / ${(os.totalmem() / 1024 / 1024).toFixed(2)}MB
@@ -30,13 +30,13 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
 > © ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴍʀ ᴅɪɴᴇꜱʜ`;
 
         // Voice message URL (PTT voice message)
-        const voiceUrl = 'https://files.catbox.moe/5cs6nk.mp3';
+        const voiceUrl = 'https://files.catbox.moe/c1863x.mp3';
 
         // 1. Send PTT Voice First (With Channel View Link)
         const voiceMessage = await conn.sendMessage(from, {
             audio: { url: voiceUrl },
             mimetype: 'audio/mpeg',
-            ptt: true, // Send as voice message (PTT)
+            mp.3: true, // Send as voice message (PTT)
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
@@ -53,7 +53,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
 
         // 2. Send Image + Caption After Voice
         await conn.sendMessage(from, {
-            image: { url: `https://i.postimg.cc/44vBQhjF/IMG-20250206-224743.jpg` }, // Image URL
+            image: { url: `https://files.catbox.moe/iwzrm3.JPG` }, // Image URL
             caption: status,
             contextInfo: {
                 mentionedJid: [m.sender],
